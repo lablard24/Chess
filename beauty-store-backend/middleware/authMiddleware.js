@@ -14,11 +14,13 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-const adminMiddleware = (req, res, next) => {
-  if (!req.user || !req.user.isAdmin) {
-    return res.status(403).json({ message: "Access denied, not an admin" });
-  }
-  next();
+const roleMiddleware = (roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Access denied, insufficient permissions." });
+    }
+    next();
+  };
 };
 
-module.exports = { authMiddleware, adminMiddleware };
+module.exports = { authMiddleware, roleMiddleware };
