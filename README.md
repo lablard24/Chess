@@ -1,1 +1,1 @@
-"# Chess Project" 
+"# Chess"
