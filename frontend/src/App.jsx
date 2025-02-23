@@ -1,34 +1,94 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Header from "./components/Header";
-import Home from "./pages/Home";
-import Category from "./pages/Category";
-import Cart from "./pages/Cart";
-import Product from "./pages/Product";
-import Login from "./pages/Login";
-import Footer from "./components/Footer";
-// import images
-import bannermens from "./assets/bannermens.png"
-import bannerwomens from "./assets/bannerwomens.png"
-import bannerkids from "./assets/bannerkids.png"
+import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Route, Routes } from "react-router-dom";
+import AdminLayout from "./components/admin-view/layout";
+import AuthLayout from "./components/auth/layout";
+import CheckAuth from "./components/common/check-auth";
+import ShoppingLayout from "./components/shopping-view/layout";
+import AdminDashboard from "./pages/admin-view/dashboard";
+import AdminFeatures from "./pages/admin-view/features";
+import AdminOrders from "./pages/admin-view/orders";
+import AdminProducts from "./pages/admin-view/products";
+import AuthLogin from "./pages/auth/login";
+import AuthRegister from "./pages/auth/register";
+import NotFound from "./pages/not-found";
+import ShoppingAccount from "./pages/shopping-view/account";
+import ShoppingCheckout from "./pages/shopping-view/checkout";
+import ShoppingHome from "./pages/shopping-view/home";
+import ShoppingListing from "./pages/shopping-view/listing";
+import PaymentSuccessPage from "./pages/shopping-view/payment-success";
+import PaypalReturnPage from "./pages/shopping-view/paypal-return";
+import SearchProducts from "./pages/shopping-view/search";
+import UnauthPage from "./pages/unauth-page";
+import { checkAuth } from "./store/auth-slice";
 
-export default function App() {
+function App() {
+  const { user, isAuthenticated, isLoading } = useSelector(
+    (state) => state.auth
+  );
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(checkAuth());
+  }, [dispatch]);
+
+  if (isLoading) return <Skeleton className="w-[800] bg-black h-[600px]" />;
+
+  console.log(isLoading, user);
   return (
-    <main className="bg-primary text-tertiary">
-      <BrowserRouter>
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />}/>
-          <Route path="/mens" element={<Category category="men" banner={bannermens}/>} />
-          <Route path="/womens" element={<Category category="women" banner={bannerwomens}/>}/>
-          <Route path="/kids" element={<Category category="kid" banner={bannerkids}/>}/>
-          <Route path="/product" element={<Product />}>
-            <Route path=":productId" element={<Product />}/>
-          </Route>
-          <Route path="/cart-page" element={<Cart />}/>
-          <Route path="/login" element={<Login />}/>
-        </Routes>
-        <Footer />
-      </BrowserRouter>
-    </main>
-  )
+    <div className="flex flex-col overflow-hidden bg-white">
+      <Routes>
+        {/* All shopping routes are wrapped in ShoppingLayout */}
+        <Route path="/" element={<ShoppingLayout />}>
+          <Route index element={<ShoppingHome />} />
+          <Route path="shop/home" element={<ShoppingHome />} />
+          <Route path="shop/listing" element={<ShoppingListing />} />
+          <Route path="shop/checkout" element={<ShoppingCheckout />} />
+          <Route path="shop/account" element={<ShoppingAccount />} />
+          <Route path="shop/paypal-return" element={<PaypalReturnPage />} />
+          <Route path="shop/payment-success" element={<PaymentSuccessPage />} />
+          <Route path="shop/search" element={<SearchProducts />} />
+        </Route>
+        <Route
+          path="/"
+          element={
+            <CheckAuth
+              isAuthenticated={isAuthenticated}
+              user={user}
+            ></CheckAuth>
+          }
+        />
+        <Route
+          path="/auth"
+          element={
+            <CheckAuth isAuthenticated={isAuthenticated} user={user}>
+              <AuthLayout />
+            </CheckAuth>
+          }
+        >
+          <Route path="login" element={<AuthLogin />} />
+          <Route path="register" element={<AuthRegister />} />
+        </Route>
+        <Route
+          path="/admin"
+          element={
+            <CheckAuth isAuthenticated={isAuthenticated} user={user}>
+              <AdminLayout />
+            </CheckAuth>
+          }
+        >
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="features" element={<AdminFeatures />} />
+        </Route>
+        <Route path="/unauth-page" element={<UnauthPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
+  );
 }
+
+export default App;
+
